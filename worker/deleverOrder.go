@@ -100,7 +100,7 @@ func DeliverOrderWorker(client worker.JobClient, job entities.Job) {
 		}
 		switch structMsg["$class"].(string) {
 		case "org.sysu.wf.PIISCreatedEvent":
-			if ok, err := publishPIIS(structMsg["id"].(string), &newIM, c); err != nil {
+			if ok, err := publishPIIS(structMsg["id"].(string), &newIM, "manufacturer", c); err != nil {
 				lib.FailJob(client, job)
 				return
 			} else if ok {

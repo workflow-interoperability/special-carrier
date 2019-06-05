@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func publishPIIS(piisid string, IM *types.IM, conn *websocket.Conn) (bool, error) {
+func publishPIIS(piisid string, IM *types.IM, sub string, conn *websocket.Conn) (bool, error) {
 	// get piis
 	processData, err := lib.GetPIIS("http://127.0.0.1:3003/api/PIIS/" + piisid)
 	if err != nil {
