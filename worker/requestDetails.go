@@ -18,7 +18,7 @@ func RequestDetailsWorker(client worker.JobClient, job entities.Job) {
 	processID := "special-carrier"
 	IESMID := "2"
 	jobKey := job.GetKey()
-	log.Println("Start place order " + strconv.Itoa(int(jobKey)))
+	log.Println("Start request details " + strconv.Itoa(int(jobKey)))
 
 	payload, err := job.GetVariablesAsMap()
 	if err != nil {
@@ -49,7 +49,7 @@ func RequestDetailsWorker(client worker.JobClient, job entities.Job) {
 				},
 				To: types.FromToData{
 					ProcessID:         "supplier",
-					ProcessInstanceID: payload["fromProcessInstanceID"].(map[string]string)["supplier"],
+					ProcessInstanceID: payload["fromProcessInstanceID"].(map[string]interface{})["supplier"].(string),
 					IESMID:            "2",
 				},
 			},
@@ -71,7 +71,6 @@ func RequestDetailsWorker(client worker.JobClient, job entities.Job) {
 		lib.FailJob(client, job)
 		return
 	}
-	payload["processID"] = id
 	log.Println("Publish IM success")
 
 	// waiting for PIIS from receiver
@@ -99,10 +98,10 @@ func RequestDetailsWorker(client worker.JobClient, job entities.Job) {
 		}
 		switch structMsg["$class"].(string) {
 		case "org.sysu.wf.PIISCreatedEvent":
-			if ok, err := publishPIIS(structMsg["id"].(string), &newIM, "special-carrier", c); err != nil {
-				lib.FailJob(client, job)
-				return
+			if ok, err := publishPIIS("3004", structMsg["id"].(string), &newIM, "special-carrier", c); err != nil {
+				continue
 			} else if ok {
+				payload["fromProcessInstanceID"].(map[string]interface{})["supplier"] = newIM.Payload.WorkflowRelevantData.To.ProcessInstanceID
 				finished = true
 				break
 			}

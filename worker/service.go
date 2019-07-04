@@ -10,11 +10,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func publishPIIS(piisid string, IM *types.IM, sub string, conn *websocket.Conn) (bool, error) {
+func publishPIIS(port, piisid string, IM *types.IM, sub string, conn *websocket.Conn) (bool, error) {
 	// get piis
-	processData, err := lib.GetPIIS("http://127.0.0.1:3003/api/PIIS/" + piisid)
+	processData, err := lib.GetPIIS("http://127.0.0.1:" + port + "/api/PIIS/" + piisid)
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 	if !(processData.To.ProcessID == IM.Payload.WorkflowRelevantData.From.ProcessID && processData.To.ProcessInstanceID == IM.Payload.WorkflowRelevantData.From.ProcessInstanceID && processData.To.IESMID == IM.Payload.WorkflowRelevantData.From.IESMID) {
@@ -39,7 +38,7 @@ func publishPIIS(piisid string, IM *types.IM, sub string, conn *websocket.Conn) 
 		log.Println(err)
 		return false, err
 	}
-	err = lib.BlockchainTransaction("http://127.0.0.1:3000/api/PublishPIIS", string(body))
+	err = lib.BlockchainTransaction("http://127.0.0.1:3003/api/PublishPIIS", string(body))
 	if err != nil {
 		log.Println(err)
 		return false, err

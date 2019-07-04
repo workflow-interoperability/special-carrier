@@ -16,10 +16,10 @@ import (
 
 // ReceiveWaybillWorker receive order
 func ReceiveWaybillWorker(client worker.JobClient, job entities.Job) {
-	processID := "supplier"
-	iesmid := "3"
+	processID := "special-carrier"
+	iesmid := "4"
 	jobKey := job.GetKey()
-	log.Println("Start sign order " + strconv.Itoa(int(jobKey)))
+	log.Println("Start receive waybill " + strconv.Itoa(int(jobKey)))
 	payload, err := job.GetVariablesAsMap()
 	if err != nil {
 		log.Println(err)
@@ -54,14 +54,12 @@ func ReceiveWaybillWorker(client worker.JobClient, job entities.Job) {
 		}
 		switch structMsg["$class"].(string) {
 		case "org.sysu.wf.IMCreatedEvent":
-			// get piis
+			// get im
 			processData, err := lib.GetIM("http://127.0.0.1:3003/api/IM/" + structMsg["id"].(string))
 			if err != nil {
-				log.Println(err)
-				lib.FailJob(client, job)
-				return
+				continue
 			}
-			if !(processData.Payload.WorkflowRelevantData.From.ProcessInstanceID == payload["fromProcessInstanceID"].(map[string]string)["supplier"] && processData.Payload.WorkflowRelevantData.To.IESMID == iesmid && processData.Payload.WorkflowRelevantData.To.ProcessID == processID) {
+			if !(processData.Payload.WorkflowRelevantData.From.ProcessInstanceID == payload["fromProcessInstanceID"].(map[string]interface{})["supplier"] && processData.Payload.WorkflowRelevantData.To.IESMID == iesmid && processData.Payload.WorkflowRelevantData.To.ProcessID == processID) {
 				continue
 			}
 			// create piis

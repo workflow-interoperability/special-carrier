@@ -2,7 +2,6 @@ package worker
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -16,10 +15,10 @@ import (
 
 // ReceiveDetailsWorker receive order
 func ReceiveDetailsWorker(client worker.JobClient, job entities.Job) {
-	processID := "supplier"
+	processID := "special-carrier"
 	iesmid := "3"
 	jobKey := job.GetKey()
-	log.Println("Start sign order " + strconv.Itoa(int(jobKey)))
+	log.Println("Start receive details " + strconv.Itoa(int(jobKey)))
 	payload, err := job.GetVariablesAsMap()
 	if err != nil {
 		log.Println(err)
@@ -57,11 +56,9 @@ func ReceiveDetailsWorker(client worker.JobClient, job entities.Job) {
 			// get piis
 			processData, err := lib.GetIM("http://127.0.0.1:3003/api/IM/" + structMsg["id"].(string))
 			if err != nil {
-				log.Println(err)
-				lib.FailJob(client, job)
-				return
+				continue
 			}
-			if !(processData.Payload.WorkflowRelevantData.From.ProcessInstanceID == payload["fromProcessInstanceID"].(map[string]string)["supplier"] && processData.Payload.WorkflowRelevantData.To.IESMID == iesmid && processData.Payload.WorkflowRelevantData.To.ProcessID == processID) {
+			if !(processData.Payload.WorkflowRelevantData.To.IESMID == iesmid && processData.Payload.WorkflowRelevantData.To.ProcessID == processID && processData.Payload.WorkflowRelevantData.To.ProcessInstanceID == payload["processInstanceID"]) {
 				continue
 			}
 			// create piis
@@ -95,7 +92,7 @@ func ReceiveDetailsWorker(client worker.JobClient, job entities.Job) {
 			finished = true
 		}
 		if finished {
-			fmt.Println("Send PIIS success.")
+			log.Println("Send PIIS success.")
 			break
 		}
 	}
